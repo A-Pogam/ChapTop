@@ -10,6 +10,8 @@ import java.util.List;
 public interface IRentalService {
   List<RentalResponseDto> getAllRentals();
   RentalResponseDto getRentalById(Integer id);
-  void createRental(String name, double surface, double price, String description, MultipartFile picture, Authentication authentication);
+  void createRental(RentalRequestDto dto, Authentication authentication);
   void updateRental(Integer id, String name, double surface, double price, String description, MultipartFile picture);
+
+
 }

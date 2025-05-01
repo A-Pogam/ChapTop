@@ -1,5 +1,6 @@
 package com.chatop.backend.controller;
 
+import com.chatop.backend.dto.RentalRequestDto;
 import com.chatop.backend.dto.RentalResponseDto;
 import com.chatop.backend.service.contracts.IRentalService;
 import org.springframework.http.MediaType;
@@ -30,29 +31,26 @@ public class RentalController {
     return ResponseEntity.ok(rentalService.getRentalById(id));
   }
 
-  @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  public ResponseEntity<Map<String, String>> createRental(
-    @RequestParam String name,
-    @RequestParam double surface,
-    @RequestParam double price,
-    @RequestParam String description,
-    @RequestPart("picture") MultipartFile picture,
+  @PostMapping
+  public ResponseEntity<?> createRental(
+    @RequestBody RentalRequestDto dto,
     Authentication authentication
   ) {
-    rentalService.createRental(name, surface, price, description, picture, authentication);
+    rentalService.createRental(dto, authentication);
     return ResponseEntity.ok(Map.of("message", "Rental created !"));
   }
 
   @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  public ResponseEntity<Map<String, String>> updateRental(
+  public ResponseEntity<?> updateRental(
     @PathVariable Integer id,
     @RequestParam String name,
     @RequestParam double surface,
     @RequestParam double price,
     @RequestParam String description,
-    @RequestPart("picture") MultipartFile picture
+    @RequestPart(value = "picture", required = false) MultipartFile picture
   ) {
     rentalService.updateRental(id, name, surface, price, description, picture);
     return ResponseEntity.ok(Map.of("message", "Rental updated !"));
   }
+
 }

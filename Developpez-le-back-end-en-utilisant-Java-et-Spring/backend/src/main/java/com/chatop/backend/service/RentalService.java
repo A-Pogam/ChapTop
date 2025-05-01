@@ -30,7 +30,10 @@ public class RentalService implements IRentalService {
 
   @Override
   public List<RentalResponseDto> getAllRentals() {
-    return rentalRepository.findAll().stream().map(this::toDto).collect(Collectors.toList());
+    return rentalRepository.findAll()
+      .stream()
+      .map(this::toDto)
+      .collect(Collectors.toList());
   }
 
   @Override
@@ -41,16 +44,17 @@ public class RentalService implements IRentalService {
   }
 
   @Override
-  public void createRental(String name, double surface, double price, String description, MultipartFile picture, Authentication authentication) {
+  public void createRental(RentalRequestDto dto, Authentication authentication) {
     String email = authentication.getName();
-    User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+    User user = userRepository.findByEmail(email)
+      .orElseThrow(() -> new RuntimeException("User not found"));
 
     Rental rental = new Rental();
-    rental.setName(name);
-    rental.setSurface(surface);
-    rental.setPrice(price);
-    rental.setDescription(description);
-    rental.setPicture("/uploads/" + picture.getOriginalFilename()); // chemin simulé ou à adapter
+    rental.setName(dto.getName());
+    rental.setSurface(dto.getSurface());
+    rental.setPrice(dto.getPrice());
+    rental.setDescription(dto.getDescription());
+    rental.setPicture(dto.getPicture());
     rental.setOwner(user);
     rental.setCreatedAt(Timestamp.from(Instant.now()));
     rental.setUpdatedAt(Timestamp.from(Instant.now()));
@@ -67,11 +71,16 @@ public class RentalService implements IRentalService {
     rental.setSurface(surface);
     rental.setPrice(price);
     rental.setDescription(description);
-    rental.setPicture("/uploads/" + picture.getOriginalFilename());
-    rental.setUpdatedAt(Timestamp.from(Instant.now()));
 
+    if (picture != null && !picture.isEmpty()) {
+      String filePath = "/uploads/" + picture.getOriginalFilename(); // à adapter si upload réel
+      rental.setPicture(filePath);
+    }
+
+    rental.setUpdatedAt(Timestamp.from(Instant.now()));
     rentalRepository.save(rental);
   }
+
 
   private RentalResponseDto toDto(Rental rental) {
     RentalResponseDto dto = new RentalResponseDto();
