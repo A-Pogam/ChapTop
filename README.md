@@ -1,4 +1,4 @@
-# ChapTop
+# ChapTop (back-end)
 This repository contains the **backend API** for **Chatop**, a peer-to-peer rental platform. The application is built using **Spring Boot 3.1**, offers secure and stateless **RESTful endpoints**, and provides interactive API documentation via **Swagger (Springdoc OpenAPI)**.
 
 ---
