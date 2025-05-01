@@ -41,16 +41,16 @@ public class RentalService implements IRentalService {
   }
 
   @Override
-  public void createRental(RentalRequestDto dto, Authentication authentication) {
+  public void createRental(String name, double surface, double price, String description, MultipartFile picture, Authentication authentication) {
     String email = authentication.getName();
     User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
 
     Rental rental = new Rental();
-    rental.setName(dto.getName());
-    rental.setSurface(dto.getSurface());
-    rental.setPrice(dto.getPrice());
-    rental.setDescription(dto.getDescription());
-    rental.setPicture(dto.getPicture()); // URL simulée
+    rental.setName(name);
+    rental.setSurface(surface);
+    rental.setPrice(price);
+    rental.setDescription(description);
+    rental.setPicture("/uploads/" + picture.getOriginalFilename()); // chemin simulé ou à adapter
     rental.setOwner(user);
     rental.setCreatedAt(Timestamp.from(Instant.now()));
     rental.setUpdatedAt(Timestamp.from(Instant.now()));
@@ -58,17 +58,16 @@ public class RentalService implements IRentalService {
     rentalRepository.save(rental);
   }
 
-
   @Override
-  public void updateRental(Integer id, RentalRequestDto dto) {
+  public void updateRental(Integer id, String name, double surface, double price, String description, MultipartFile picture) {
     Rental rental = rentalRepository.findById(id)
       .orElseThrow(() -> new RuntimeException("Rental not found"));
 
-    rental.setName(dto.getName());
-    rental.setSurface(dto.getSurface());
-    rental.setPrice(dto.getPrice());
-    rental.setPicture(dto.getPicture());
-    rental.setDescription(dto.getDescription());
+    rental.setName(name);
+    rental.setSurface(surface);
+    rental.setPrice(price);
+    rental.setDescription(description);
+    rental.setPicture("/uploads/" + picture.getOriginalFilename());
     rental.setUpdatedAt(Timestamp.from(Instant.now()));
 
     rentalRepository.save(rental);

@@ -1,6 +1,5 @@
 package com.chatop.backend.controller;
 
-import com.chatop.backend.dto.RentalRequestDto;
 import com.chatop.backend.dto.RentalResponseDto;
 import com.chatop.backend.service.contracts.IRentalService;
 import org.springframework.http.MediaType;
@@ -9,7 +8,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -23,19 +21,17 @@ public class RentalController {
   }
 
   @GetMapping
-  public ResponseEntity<?> getAllRentals() {
-    List<RentalResponseDto> rentals = rentalService.getAllRentals();
-    return ResponseEntity.ok(Map.of("rentals", rentals));
+  public ResponseEntity<Map<String, Object>> getAllRentals() {
+    return ResponseEntity.ok(Map.of("rentals", rentalService.getAllRentals()));
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<?> getRental(@PathVariable Integer id) {
-    RentalResponseDto rental = rentalService.getRentalById(id);
-    return ResponseEntity.ok(rental);
+  public ResponseEntity<RentalResponseDto> getRental(@PathVariable Integer id) {
+    return ResponseEntity.ok(rentalService.getRentalById(id));
   }
 
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  public ResponseEntity<?> createRental(
+  public ResponseEntity<Map<String, String>> createRental(
     @RequestParam String name,
     @RequestParam double surface,
     @RequestParam double price,
@@ -43,36 +39,20 @@ public class RentalController {
     @RequestPart("picture") MultipartFile picture,
     Authentication authentication
   ) {
-    RentalRequestDto dto = new RentalRequestDto();
-    dto.setName(name);
-    dto.setSurface(surface);
-    dto.setPrice(price);
-    dto.setDescription(description);
-    dto.setPicture("/uploads/" + picture.getOriginalFilename());
-
-    rentalService.createRental(dto, authentication);
+    rentalService.createRental(name, surface, price, description, picture, authentication);
     return ResponseEntity.ok(Map.of("message", "Rental created !"));
   }
 
   @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  public ResponseEntity<?> updateRental(
+  public ResponseEntity<Map<String, String>> updateRental(
     @PathVariable Integer id,
     @RequestParam String name,
     @RequestParam double surface,
     @RequestParam double price,
     @RequestParam String description,
-    @RequestPart("picture") MultipartFile picture,
-    Authentication authentication
+    @RequestPart("picture") MultipartFile picture
   ) {
-    RentalRequestDto dto = new RentalRequestDto();
-    dto.setName(name);
-    dto.setSurface(surface);
-    dto.setPrice(price);
-    dto.setDescription(description);
-    dto.setPicture("/uploads/" + picture.getOriginalFilename());
-
-    rentalService.updateRental(id, dto);
+    rentalService.updateRental(id, name, surface, price, description, picture);
     return ResponseEntity.ok(Map.of("message", "Rental updated !"));
   }
-
 }
