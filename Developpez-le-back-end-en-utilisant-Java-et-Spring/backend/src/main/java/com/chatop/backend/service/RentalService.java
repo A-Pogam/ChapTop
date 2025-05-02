@@ -7,10 +7,16 @@ import com.chatop.backend.model.User;
 import com.chatop.backend.repository.RentalRepository;
 import com.chatop.backend.repository.UserRepository;
 import com.chatop.backend.service.contracts.IRentalService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
@@ -27,6 +33,9 @@ public class RentalService implements IRentalService {
     this.rentalRepository = rentalRepository;
     this.userRepository = userRepository;
   }
+
+  @Value("${file.upload-dir}")
+  private String uploadDir;
 
   @Override
   public List<RentalResponseDto> getAllRentals() {
@@ -45,8 +54,31 @@ public class RentalService implements IRentalService {
 
   @Override
   public void createRental(RentalRequestDto dto, Authentication authentication) {
-    String email = authentication.getName();
-    User user = userRepository.findByEmail(email)
+    MultipartFile picture = dto.getPicture();
+    String imageUrl = null;
+
+    if (picture != null && !picture.isEmpty()) {
+      try {
+        String originalFileName = picture.getOriginalFilename();
+        String fileName = System.currentTimeMillis() + "_" + originalFileName;
+        Path uploadPath = Paths.get(uploadDir);
+
+        if (!Files.exists(uploadPath)) {
+          Files.createDirectories(uploadPath);
+        }
+
+        Path filePath = uploadPath.resolve(fileName);
+        picture.transferTo(filePath.toFile());
+
+        imageUrl = "http://localhost:8080/uploads/" + fileName;
+
+      } catch (IOException e) {
+        throw new RuntimeException("Failed to save the picture", e);
+      }
+    }
+
+    String currentUsername = authentication.getName();
+    User user = userRepository.findByEmail(currentUsername)
       .orElseThrow(() -> new RuntimeException("User not found"));
 
     Rental rental = new Rental();
@@ -54,13 +86,15 @@ public class RentalService implements IRentalService {
     rental.setSurface(dto.getSurface());
     rental.setPrice(dto.getPrice());
     rental.setDescription(dto.getDescription());
-    rental.setPicture(dto.getPicture());
+    rental.setPicture(imageUrl);
     rental.setOwner(user);
     rental.setCreatedAt(Timestamp.from(Instant.now()));
     rental.setUpdatedAt(Timestamp.from(Instant.now()));
 
     rentalRepository.save(rental);
   }
+
+
 
   @Override
   public void updateRental(Integer id, String name, double surface, double price, String description, MultipartFile picture) {
@@ -73,7 +107,7 @@ public class RentalService implements IRentalService {
     rental.setDescription(description);
 
     if (picture != null && !picture.isEmpty()) {
-      String filePath = "/uploads/" + picture.getOriginalFilename(); // à adapter si upload réel
+      String filePath = "/uploads/" + picture.getOriginalFilename();
       rental.setPicture(filePath);
     }
 

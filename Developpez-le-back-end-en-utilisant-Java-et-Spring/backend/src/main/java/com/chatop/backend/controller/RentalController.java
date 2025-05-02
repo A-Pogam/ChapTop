@@ -31,11 +31,22 @@ public class RentalController {
     return ResponseEntity.ok(rentalService.getRentalById(id));
   }
 
-  @PostMapping
+  @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<?> createRental(
-    @RequestBody RentalRequestDto dto,
+    @RequestParam String name,
+    @RequestParam double surface,
+    @RequestParam double price,
+    @RequestParam String description,
+    @RequestPart MultipartFile picture,
     Authentication authentication
   ) {
+    RentalRequestDto dto = new RentalRequestDto();
+    dto.setName(name);
+    dto.setSurface(surface);
+    dto.setPrice(price);
+    dto.setDescription(description);
+    dto.setPicture(picture);
+
     rentalService.createRental(dto, authentication);
     return ResponseEntity.ok(Map.of("message", "Rental created !"));
   }

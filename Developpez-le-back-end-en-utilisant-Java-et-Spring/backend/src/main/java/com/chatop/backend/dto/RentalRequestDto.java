@@ -1,12 +1,14 @@
 package com.chatop.backend.dto;
 
+import org.springframework.web.multipart.MultipartFile;
+
 public class RentalRequestDto {
   private String name;
   private double surface;
   private double price;
-  private String picture;
   private String description;
   private Integer owner_id;
+  private MultipartFile picture;
 
   public String getName() {
     return name;
@@ -32,14 +34,6 @@ public class RentalRequestDto {
     this.price = price;
   }
 
-  public String getPicture() {
-    return picture;
-  }
-
-  public void setPicture(String picture) {
-    this.picture = picture;
-  }
-
   public String getDescription() {
     return description;
   }
@@ -54,5 +48,13 @@ public class RentalRequestDto {
 
   public void setOwner_id(Integer owner_id) {
     this.owner_id = owner_id;
+  }
+
+  public MultipartFile getPicture() {
+    return picture;
+  }
+
+  public void setPicture(MultipartFile picture) {
+    this.picture = picture;
   }
 }
