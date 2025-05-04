@@ -70,7 +70,7 @@ public class RentalService implements IRentalService {
         Path filePath = uploadPath.resolve(fileName);
         picture.transferTo(filePath.toFile());
 
-        imageUrl = "http://localhost:3001/uploads/" + fileName;
+        imageUrl = "/uploads/" + fileName;
 
       } catch (IOException e) {
         throw new RuntimeException("Failed to save the picture", e);

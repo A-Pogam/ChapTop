@@ -63,5 +63,4 @@ public class RentalController {
     rentalService.updateRental(id, name, surface, price, description, picture);
     return ResponseEntity.ok(Map.of("message", "Rental updated !"));
   }
-
 }
