@@ -58,7 +58,7 @@ public class RentalService implements IRentalService {
   @Override
   public void createRental(RentalRequestDto dto, Authentication auth) {
 
-    String imageUrl = savePicture(dto.getPicture());   // peut être null
+    String imageUrl = savePicture(dto.getPicture());
 
     User user = userRepository.findByEmail(auth.getName())
       .orElseThrow(() -> new RuntimeException("User not found"));
@@ -112,9 +112,7 @@ public class RentalService implements IRentalService {
 
       picture.transferTo(uploadPath.resolve(fileName).toFile());
 
-      System.out.println("### URL SAUVÉE = " + SERVER_URL + "/uploads/" + fileName);
-
-      return SERVER_URL + "/uploads/" + fileName;   // URL absolue
+      return SERVER_URL + "assets/" + fileName;
 
     } catch (IOException e) {
       throw new RuntimeException("Failed to save the picture", e);
