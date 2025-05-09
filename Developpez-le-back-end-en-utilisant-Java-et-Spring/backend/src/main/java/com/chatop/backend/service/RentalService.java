@@ -32,8 +32,13 @@ public class RentalService implements IRentalService {
     this.userRepository = userRepository;
   }
 
+  // dossier backend/uploads (défini dans application.properties)
   @Value("${file.upload-dir}")
   private String uploadDir;
+
+  /** URL de base du backend — constante */
+  private static final String SERVER_URL = "http://localhost:3001";
+
 
   @Override
   public List<RentalResponseDto> getAllRentals() {
@@ -51,32 +56,11 @@ public class RentalService implements IRentalService {
   }
 
   @Override
-  public void createRental(RentalRequestDto dto, Authentication authentication) {
-    MultipartFile picture = dto.getPicture();
-    String imageUrl = null;
+  public void createRental(RentalRequestDto dto, Authentication auth) {
 
-    if (picture != null && !picture.isEmpty()) {
-      try {
-        String originalFileName = picture.getOriginalFilename();
-        String fileName = System.currentTimeMillis() + "_" + originalFileName;
-        Path uploadPath = Paths.get(uploadDir);
+    String imageUrl = savePicture(dto.getPicture());   // peut être null
 
-        if (!Files.exists(uploadPath)) {
-          Files.createDirectories(uploadPath);
-        }
-
-        Path filePath = uploadPath.resolve(fileName);
-        picture.transferTo(filePath.toFile());
-
-        imageUrl = "assets/" + fileName;
-
-      } catch (IOException e) {
-        throw new RuntimeException("Failed to save the picture", e);
-      }
-    }
-
-    String currentUsername = authentication.getName();
-    User user = userRepository.findByEmail(currentUsername)
+    User user = userRepository.findByEmail(auth.getName())
       .orElseThrow(() -> new RuntimeException("User not found"));
 
     Rental rental = new Rental();
@@ -93,7 +77,13 @@ public class RentalService implements IRentalService {
   }
 
   @Override
-  public void updateRental(Integer id, String name, double surface, double price, String description, MultipartFile picture) {
+  public void updateRental(Integer id,
+                           String name,
+                           double surface,
+                           double price,
+                           String description,
+                           MultipartFile picture) {
+
     Rental rental = rentalRepository.findById(id)
       .orElseThrow(() -> new RuntimeException("Rental not found"));
 
@@ -103,39 +93,46 @@ public class RentalService implements IRentalService {
     rental.setDescription(description);
 
     if (picture != null && !picture.isEmpty()) {
-      try {
-        String originalFileName = picture.getOriginalFilename();
-        String fileName = System.currentTimeMillis() + "_" + originalFileName;
-        Path uploadPath = Paths.get(uploadDir);
-
-        if (!Files.exists(uploadPath)) {
-          Files.createDirectories(uploadPath);
-        }
-
-        Path filePath = uploadPath.resolve(fileName);
-        picture.transferTo(filePath.toFile());
-
-        rental.setPicture("/assets/" + fileName);
-      } catch (IOException e) {
-        throw new RuntimeException("Failed to save the picture", e);
-      }
+      rental.setPicture(savePicture(picture));
     }
 
     rental.setUpdatedAt(Timestamp.from(Instant.now()));
     rentalRepository.save(rental);
   }
 
-  private RentalResponseDto toDto(Rental rental) {
+  private String savePicture(MultipartFile picture) {
+    if (picture == null || picture.isEmpty()) return null;
+
+    try {
+      String original = picture.getOriginalFilename();
+      String fileName = System.currentTimeMillis() + "_" + original;
+
+      Path uploadPath = Paths.get(uploadDir).toAbsolutePath();
+      if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
+
+      picture.transferTo(uploadPath.resolve(fileName).toFile());
+
+      System.out.println("### URL SAUVÉE = " + SERVER_URL + "/uploads/" + fileName);
+
+      return SERVER_URL + "/uploads/" + fileName;   // URL absolue
+
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to save the picture", e);
+    }
+  }
+
+
+  private RentalResponseDto toDto(Rental r) {
     RentalResponseDto dto = new RentalResponseDto();
-    dto.setId(rental.getId());
-    dto.setName(rental.getName());
-    dto.setSurface(rental.getSurface());
-    dto.setPrice(rental.getPrice());
-    dto.setPicture(rental.getPicture());
-    dto.setDescription(rental.getDescription());
-    dto.setOwner_id(rental.getOwner().getId());
-    dto.setCreated_at(rental.getCreatedAt());
-    dto.setUpdated_at(rental.getUpdatedAt());
+    dto.setId(r.getId());
+    dto.setName(r.getName());
+    dto.setSurface(r.getSurface());
+    dto.setPrice(r.getPrice());
+    dto.setPicture(r.getPicture());
+    dto.setDescription(r.getDescription());
+    dto.setOwner_id(r.getOwner().getId());
+    dto.setCreated_at(r.getCreatedAt());
+    dto.setUpdated_at(r.getUpdatedAt());
     return dto;
   }
 }
