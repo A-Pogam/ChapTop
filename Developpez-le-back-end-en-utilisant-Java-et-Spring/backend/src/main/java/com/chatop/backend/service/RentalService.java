@@ -36,8 +36,7 @@ public class RentalService implements IRentalService {
   @Value("${file.upload-dir}")
   private String uploadDir;
 
-  /** URL de base du backend — constante */
-  private static final String SERVER_URL = "http://localhost:3001";
+
 
 
   @Override
@@ -112,7 +111,7 @@ public class RentalService implements IRentalService {
 
       picture.transferTo(uploadPath.resolve(fileName).toFile());
 
-      return SERVER_URL + "assets/" + fileName;
+      return "assets/" + fileName;
 
     } catch (IOException e) {
       throw new RuntimeException("Failed to save the picture", e);
