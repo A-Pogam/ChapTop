@@ -32,6 +32,7 @@ public class UserService implements IUserService {
 
   @Override
   public ResponseEntity<?> register(User user) {
+
     if (existsByEmail(user.getEmail())) {
       return ResponseEntity.badRequest().body("Email already in use");
     }
@@ -41,8 +42,12 @@ public class UserService implements IUserService {
     user.setUpdatedAt(Timestamp.from(Instant.now()));
     userRepository.save(user);
 
-    return ResponseEntity.ok("User registered successfully");
+    Authentication auth = new UsernamePasswordAuthenticationToken(user.getEmail(), null);
+    String token = jwtService.generateToken(auth);
+
+    return ResponseEntity.ok(Map.of("token", token));
   }
+
 
   @Override
   public ResponseEntity<?> login(LoginRequestDto loginDto) {
